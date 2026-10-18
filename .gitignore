@@ -1,0 +1,8 @@
+*.s
+*.sym
+*.lst
+*.tap
+*.raw
+
+# compiler dir
+x80cc*

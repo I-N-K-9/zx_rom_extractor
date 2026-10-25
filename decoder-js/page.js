@@ -10,8 +10,9 @@
 
     var STR = {
         en: {
+            about: "ZRE is a ZX Spectrum program that copies out the SOS or TR-DOS ROM without a programmer or even unscrewing the case, as a screen dump, a tape file, or a set of QR codes.",
             tap: "Download TAP",
-            howto1: "Load the tape on your ZX Spectrum, select which ROM to extract (SOS or TR-DOS), and press 3 to generate a set of QR codes. Each code takes about 5 minutes. There are 6 codes in total. Then insert the QR code images in the form below and press Decode.",
+            howto1: "Load the tape on your ZX Spectrum, select which ROM to extract (SOS or TR-DOS), and press 3 to generate a set of QR codes. Each code takes about a minute. There are 6 codes in total. Then insert the QR code images in the form below and press Decode.",
             howto2: "You can also extract the ROM as a hex dump on the screen (but you'll need to decode it yourself) or save it to the tape.",
             join: "Join QR photos into a ROM",
             lead: "Add the JPEG or PNG photos. They are read in alphabetical order and saved as one binary file.",
@@ -27,8 +28,9 @@
             bytes: "{n} bytes"
         },
         ru: {
+            about: "ZRE — это программа для ZX Spectrum, которая позволяет считать ПЗУ SOS или TR-DOS без программатора и даже без раскручивания корпуса: дампом на экран, записью на кассету или набором QR-кодов.",
             tap: "Скачать TAP",
-            howto1: "Загрузите TAP-файл в свой ZX Spectrum, выберите, какой дамп ПЗУ достаём (SOS или TR-DOS), и нажмите 3, чтобы получить набор QR-кодов. Каждый код формируется около 5 минут, всего кодов 6. Затем вставьте изображения QR-кодов в форму ниже и нажмите «Декодировать».",
+            howto1: "Загрузите TAP-файл в свой ZX Spectrum, выберите, какой дамп ПЗУ достаём (SOS или TR-DOS), и нажмите 3, чтобы получить набор QR-кодов. Каждый код формируется около минуты, всего кодов 6. Затем вставьте изображения QR-кодов в форму ниже и нажмите «Декодировать».",
             howto2: "Также можно вывести ПЗУ на экран шестнадцатеричным дампом (но его придётся декодировать самостоятельно) или сохранить на кассету.",
             join: "Склеить фотографии QR-кодов в ПЗУ",
             lead: "Добавьте JPEG или PNG. Обработка идёт в алфавитном порядке. В конце данные склеются в один бинарь, который можно будет скачать.",

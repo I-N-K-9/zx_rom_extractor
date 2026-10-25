@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR ROM</title>
+<style>
+  :root {
+    color-scheme: light;
+    --ink: #1c1915;
+    --muted: #5c564c;
+    --line: #d9d2c5;
+    --paper: #f6f3ec;
+    --card: #fffdf8;
+    --accent: #1f4d3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.45 "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+  }
+  main {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 4rem;
+  }
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0 0 0.4rem;
+  }
+  .lead {
+    margin: 0 0 1.5rem;
+    color: var(--muted);
+  }
+  .drop {
+    display: block;
+    border: 1.5px dashed var(--line);
+    background: var(--card);
+    border-radius: 8px;
+    padding: 1.6rem 1rem;
+    text-align: center;
+    cursor: pointer;
+  }
+  .drop.over { border-color: var(--accent); background: #eef5f1; }
+  .drop input { display: none; }
+  .drop span { color: var(--muted); }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+  }
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--line);
+    font-family: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
+    font-size: 0.86rem;
+  }
+  li .name { overflow: hidden; text-overflow: ellipsis; }
+  li .meta { color: var(--muted); white-space: nowrap; }
+  li.bad .meta { color: #8a2b2b; }
+  .actions { display: flex; gap: 0.6rem; margin-top: 0.4rem; }
+  button {
+    font: inherit;
+    font-size: 0.95rem;
+    background: var(--accent);
+    color: white;
+    border: 0;
+    border-radius: 6px;
+    padding: 0.55rem 0.9rem;
+    cursor: pointer;
+  }
+  button:disabled { background: #b7b1a6; cursor: default; }
+  button.secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  #status { min-height: 1.4em; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Join QR photos into a ROM</h1>
+  <p class="lead">Add the JPEG or PNG photos. They are read in alphabetical order and saved as one binary file.</p>
+  <label class="drop" id="drop">
+    <input id="files" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple>
+    <span>Drop photos here, or click to choose them</span>
+  </label>
+  <ul id="list"></ul>
+  <div class="actions">
+    <button id="go" disabled>Decode</button>
+    <button id="save" class="secondary" disabled>Download rom.bin</button>
+  </div>
+  <p id="status"></p>
+</main>
+<script src="decoder-js/zxing.min.js"></script>
+<script src="decoder-js/qrgrid.js"></script>
+<script src="decoder-js/page.js"></script>
+</body>
+</html>

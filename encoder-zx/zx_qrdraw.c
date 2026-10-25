@@ -16,6 +16,8 @@ uint8_t* attr = (uint8_t*)0x5800;
 // white paper, black ink
 #define DEFAULT_ATTR 0x38 
 
+static const uint8_t BIT[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
+
 static uint8_t qr_byte(const uint8_t *saved, size_t length, int i) {
     if ((size_t)i < length)
         return saved[i];
@@ -24,7 +26,7 @@ static uint8_t qr_byte(const uint8_t *saved, size_t length, int i) {
 
 static void plot(int x, int y, bool is_black) {
     uint8_t *cell = (uint8_t *)(((uint16_t)(0x40u | ((y >> 3) & 0x18u) | (y & 7u)) << 8) | (uint8_t)((uint8_t)((y & 0xF8) << 2) | (uint8_t)(x >> 3)));
-    uint8_t bit = (uint8_t)(0x80u >> (x & 7));
+    uint8_t bit = BIT[7 - (x & 7)];
     if (is_black)
         *cell |= bit;
     else
@@ -37,7 +39,7 @@ static void draw_qr(void) {
     for (int y = 0; y < size; y++) {
         for (int x = 0; x < size; x++, index++) {
             int byte = (index >> 3) + 1;
-            bool is_black = (qr_code[byte] >> (index & 7)) & 0x01;
+            bool is_black = (qr_code[byte] & BIT[index & 7]) != 0;
             plot(x, y, is_black);
         }
     }

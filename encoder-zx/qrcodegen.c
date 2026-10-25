@@ -203,12 +203,21 @@ bool qrcodegen_encodeBinary(uint8_t dataAndTemp[], size_t dataLen, uint8_t qrcod
 }
 
 
+// Bit n of a byte, for n in 0..7. A variable shift is a subroutine on the 8080;
+// this table is one indexed load.
+static const uint8_t BIT[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
+
 // Appends the given number of low-order bits of the given value to the given byte-based
 // bit buffer, increasing the bit length. Requires 0 <= numBits <= 16 and val < 2^numBits.
 testable void appendBitsToBuffer(unsigned int val, int numBits, uint8_t buffer[], int *bitLen) {
 	assert(0 <= numBits && numBits <= 16 && (unsigned long)val >> numBits == 0);
-	for (int i = numBits - 1; i >= 0; i--, (*bitLen)++)
-		buffer[*bitLen >> 3] |= ((val >> i) & 1) << (7 - (*bitLen & 7));
+	uint8_t hi = (uint8_t)(val >> 8);
+	uint8_t lo = (uint8_t)val;
+	for (int i = numBits - 1; i >= 0; i--, (*bitLen)++) {
+		uint8_t src = (i & 8) ? hi : lo;
+		if (src & BIT[i & 7])
+			buffer[*bitLen >> 3] |= BIT[7 - (*bitLen & 7)];
+	}
 }
 
 
@@ -258,7 +267,7 @@ bool qrcodegen_encodeSegmentsAdvanced(const struct qrcodegen_Segment segs[], siz
 		appendBitsToBuffer((unsigned int)seg->mode, 4, qrcode, &bitLen);
 		appendBitsToBuffer((unsigned int)seg->numChars, numCharCountBits(seg->mode, version), qrcode, &bitLen);
 		for (int j = 0; j < seg->bitLength; j++) {
-			int bit = (seg->data[j >> 3] >> (7 - (j & 7))) & 1;
+			int bit = (seg->data[j >> 3] & BIT[7 - (j & 7)]) != 0;
 			appendBitsToBuffer((unsigned int)bit, 1, qrcode, &bitLen);
 		}
 	}
@@ -619,7 +628,7 @@ static void drawCodewords(const uint8_t data[], int dataLen, uint8_t qrcode[]) {
 				bool upward = ((right + 1) & 2) == 0;
 				int y = upward ? qrsize - 1 - vert : vert;  // Actual y coordinate
 				if (!getModuleBounded(qrcode, x, y) && i < dataLen * 8) {
-					bool dark = getBit(data[i >> 3], 7 - (i & 7));
+					bool dark = (data[i >> 3] & BIT[7 - (i & 7)]) != 0;
 					setModuleBounded(qrcode, x, y, dark);
 					i++;
 				}
@@ -803,7 +812,7 @@ testable bool getModuleBounded(const uint8_t qrcode[], int x, int y) {
 	int qrsize = qrcode[0];
 	assert(21 <= qrsize && qrsize <= 177 && 0 <= x && x < qrsize && 0 <= y && y < qrsize);
 	int index = (int)row_at[y] + x;
-	return getBit(qrcode[(index >> 3) + 1], index & 7);
+	return (qrcode[(index >> 3) + 1] & BIT[index & 7]) != 0;
 }
 
 
@@ -812,12 +821,12 @@ testable void setModuleBounded(uint8_t qrcode[], int x, int y, bool isDark) {
 	int qrsize = qrcode[0];
 	assert(21 <= qrsize && qrsize <= 177 && 0 <= x && x < qrsize && 0 <= y && y < qrsize);
 	int index = (int)row_at[y] + x;
-	int bitIndex = index & 7;
 	int byteIndex = (index >> 3) + 1;
+	uint8_t mask = BIT[index & 7];
 	if (isDark)
-		qrcode[byteIndex] |= 1 << bitIndex;
+		qrcode[byteIndex] |= mask;
 	else
-		qrcode[byteIndex] &= (1 << bitIndex) ^ 0xFF;
+		qrcode[byteIndex] &= (uint8_t)~mask;
 }
 
 
@@ -831,7 +840,8 @@ testable void setModuleUnbounded(uint8_t qrcode[], int x, int y, bool isDark) {
 
 // Returns true iff the i'th bit of x is set to 1. Requires x >= 0 and 0 <= i <= 14.
 static bool getBit(int x, int i) {
-	return ((x >> i) & 1) != 0;
+	uint8_t byte = (uint8_t)((i & 8) ? (x >> 8) : x);
+	return (byte & BIT[i & 7]) != 0;
 }
 
 

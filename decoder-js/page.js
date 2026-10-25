@@ -8,6 +8,46 @@
         { blur: 1, bias: 8, fitMis: 4, radius: 1 }
     ];
 
+    var STR = {
+        en: {
+            tap: "Download TAP",
+            howto1: "Load the tape on your ZX Spectrum, select which ROM to extract (SOS or TR-DOS), and press 3 to generate a set of QR codes. Each code takes about 5 minutes. There are 6 codes in total. Then insert the QR code images in the form below and press Decode.",
+            howto2: "You can also extract the ROM as a hex dump on the screen (but you'll need to decode it yourself) or save it to the tape.",
+            join: "Join QR photos into a ROM",
+            lead: "Add the JPEG or PNG photos. They are read in alphabetical order and saved as one binary file.",
+            drop: "Drop photos here, or click to choose them",
+            decode: "Decode",
+            save: "Download rom.bin",
+            reading: "reading…",
+            failed: "failed",
+            readingOf: "Reading {i} of {n}",
+            failedPhotos: "One or more photos could not be read.",
+            photoOne: "{n} photo, alphabetical",
+            photoMany: "{n} photos, alphabetical",
+            bytes: "{n} bytes"
+        },
+        ru: {
+            tap: "Скачать TAP",
+            howto1: "Загрузите TAP-файл в свой ZX Spectrum, выберите, какой дамп ПЗУ достаём (SOS или TR-DOS), и нажмите 3, чтобы получить набор QR-кодов. Каждый код формируется около 5 минут, всего кодов 6. Затем вставьте изображения QR-кодов в форму ниже и нажмите «Декодировать».",
+            howto2: "Также можно вывести ПЗУ на экран шестнадцатеричным дампом (но его придётся декодировать самостоятельно) или сохранить на кассету.",
+            join: "Склеить фотографии QR-кодов в ПЗУ",
+            lead: "Добавьте JPEG или PNG. Обработка идёт в алфавитном порядке. В конце данные склеются в один бинарь, который можно будет скачать.",
+            drop: "Нажмите для выбора фото или просто перетащите сюда файлы",
+            decode: "Декодировать",
+            save: "Скачать rom.bin",
+            reading: "чтение…",
+            failed: "ошибка",
+            readingOf: "Чтение {i} из {n}",
+            failedPhotos: "Не удалось прочитать одно или несколько фото.",
+            bytesOne: "{n} байт",
+            bytesFew: "{n} байта",
+            bytesMany: "{n} байт",
+            photoOne: "{n} фотография, по алфавиту",
+            photoFew: "{n} фотографии, по алфавиту",
+            photoMany: "{n} фотографий, по алфавиту"
+        }
+    };
+
     var input = document.getElementById("files");
     var drop = document.getElementById("drop");
     var list = document.getElementById("list");
@@ -16,6 +56,75 @@
     var status = document.getElementById("status");
     var chosen = [];
     var rom = null;
+    var lang = "en";
+    var statusState = null;
+    var rowState = [];
+
+    function storedLang() {
+        try {
+            var saved = localStorage.getItem("zre-lang");
+            if (saved === "ru" || saved === "en") return saved;
+        } catch (err) {}
+        return /^ru\b/i.test(navigator.language || "") ? "ru" : "en";
+    }
+
+    function t(key) {
+        return STR[lang][key];
+    }
+
+    function ruForm(n, one, few, many) {
+        var n10 = n % 10;
+        var n100 = n % 100;
+        if (n10 === 1 && n100 !== 11) return one;
+        if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return few;
+        return many;
+    }
+
+    function fill(template, values) {
+        return template.replace(/\{(\w+)\}/g, function (_, key) { return values[key]; });
+    }
+
+    function photosLabel(n) {
+        if (lang === "ru") return fill(ruForm(n, t("photoOne"), t("photoFew"), t("photoMany")), { n: n });
+        return fill(n === 1 ? t("photoOne") : t("photoMany"), { n: n });
+    }
+
+    function bytesLabel(n) {
+        if (lang === "ru") return fill(ruForm(n, t("bytesOne"), t("bytesFew"), t("bytesMany")), { n: n });
+        return fill(t("bytes"), { n: n });
+    }
+
+    function paintStatus() {
+        var s = statusState;
+        if (!s) {
+            status.textContent = "";
+            return;
+        }
+        if (s.key === "photos") status.textContent = photosLabel(s.n);
+        else if (s.key === "readingOf") status.textContent = fill(t("readingOf"), { i: s.i, n: s.n });
+        else if (s.key === "bytes") status.textContent = bytesLabel(s.n);
+        else status.textContent = t(s.key);
+    }
+
+    function applyLang() {
+        document.documentElement.lang = lang;
+        var nodes = document.querySelectorAll("[data-i18n]");
+        for (var i = 0; i < nodes.length; i++) nodes[i].textContent = t(nodes[i].getAttribute("data-i18n"));
+        var switches = document.querySelectorAll("[data-set-lang]");
+        for (var j = 0; j < switches.length; j++) {
+            var on = switches[j].getAttribute("data-set-lang") === lang;
+            switches[j].classList.toggle("on", on);
+            switches[j].setAttribute("aria-pressed", on ? "true" : "false");
+        }
+        render();
+        paintStatus();
+    }
+
+    function setLang(next) {
+        lang = next === "ru" ? "ru" : "en";
+        try { localStorage.setItem("zre-lang", lang); } catch (err) {}
+        applyLang();
+    }
 
     function byName(a, b) {
         return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
@@ -31,13 +140,15 @@
         next.sort(byName);
         chosen = next;
         rom = null;
+        rowState = chosen.map(function () { return null; });
         save.disabled = true;
-        render();
         go.disabled = chosen.length === 0;
-        status.textContent = chosen.length ? chosen.length + " photo" + (chosen.length === 1 ? "" : "s") + ", alphabetical" : "";
+        statusState = chosen.length ? { key: "photos", n: chosen.length } : null;
+        render();
+        paintStatus();
     }
 
-    function render(rows) {
+    function render() {
         list.replaceChildren();
         for (var i = 0; i < chosen.length; i++) {
             var li = document.createElement("li");
@@ -46,8 +157,10 @@
             name.textContent = chosen[i].name;
             var meta = document.createElement("span");
             meta.className = "meta";
-            meta.textContent = rows && rows[i] ? rows[i] : "";
-            if (rows && rows[i] && rows[i].indexOf("failed") === 0) li.className = "bad";
+            var row = rowState[i];
+            if (row && row.key === "bytes") meta.textContent = bytesLabel(row.n);
+            else if (row) meta.textContent = t(row.key);
+            if (row && row.key === "failed") li.className = "bad";
             li.append(name, meta);
             list.append(li);
         }
@@ -122,27 +235,29 @@
         go.disabled = true;
         save.disabled = true;
         rom = null;
-        var rows = chosen.map(function () { return ""; });
+        rowState = chosen.map(function () { return null; });
         var parts = [];
         var failed = false;
         for (var i = 0; i < chosen.length; i++) {
-            rows[i] = "reading…";
-            render(rows);
-            status.textContent = "Reading " + (i + 1) + " of " + chosen.length;
+            rowState[i] = { key: "reading" };
+            statusState = { key: "readingOf", i: i + 1, n: chosen.length };
+            render();
+            paintStatus();
             await pause();
             try {
                 var image = await loadGray(chosen[i]);
                 var bytes = decodeGray(image.gray, image.width, image.height);
                 parts.push(bytes);
-                rows[i] = bytes.length + " bytes";
+                rowState[i] = { key: "bytes", n: bytes.length };
             } catch (err) {
                 failed = true;
-                rows[i] = "failed";
+                rowState[i] = { key: "failed" };
             }
-            render(rows);
+            render();
         }
         if (failed || !parts.length) {
-            status.textContent = "One or more photos could not be read.";
+            statusState = { key: "failedPhotos" };
+            paintStatus();
             go.disabled = false;
             return;
         }
@@ -154,7 +269,8 @@
             rom.set(parts[q], at);
             at += parts[q].length;
         }
-        status.textContent = total + " bytes";
+        statusState = { key: "bytes", n: total };
+        paintStatus();
         save.disabled = false;
         go.disabled = false;
     }
@@ -178,6 +294,14 @@
     drop.addEventListener("drop", function (event) {
         setFiles(event.dataTransfer.files);
     });
+
+    document.querySelectorAll("[data-set-lang]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            setLang(button.getAttribute("data-set-lang"));
+        });
+    });
+
+    setLang(storedLang());
 
     go.addEventListener("click", function () { decodeAll(); });
     save.addEventListener("click", function () {

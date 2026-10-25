@@ -19,18 +19,35 @@
     margin: 0;
     background: var(--paper);
     color: var(--ink);
-    font: 16px/1.45 "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+    font: 16px/1.45 "Iowan Old Style", Palatino, "Palatino Linotype", "Liberation Serif", "Noto Serif", "Times New Roman", Georgia, serif;
   }
   main {
     max-width: 40rem;
     margin: 0 auto;
     padding: 2.5rem 1.25rem 4rem;
   }
+  .top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 0.35rem;
+  }
   h1 {
     font-size: 1.75rem;
     font-weight: 600;
-    margin: 0 0 0.35rem;
+    margin: 0;
   }
+  .lang { display: flex; gap: 0.45rem; font-size: 0.9rem; }
+  .lang button {
+    background: transparent;
+    color: var(--muted);
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    font-weight: 600;
+  }
+  .lang button.on { color: var(--accent); cursor: default; }
   h2 {
     font-size: 1.2rem;
     font-weight: 600;
@@ -97,20 +114,26 @@
 </head>
 <body>
 <main>
-  <h1>ZX ROM Extractor</h1>
-  <a class="tap" href="https://github.com/atsidaev/zx_rom_extractor/releases/download/v1.0/ZRE_v1_0.TAP">Download TAP</a>
-  <p class="howto">Load the tape on your ZX Spectrum, select which ROM to extract (SOS or TR-DOS), and press 3 to generate a set of QR codes. Each code takes about 5 minutes. There are 6 codes in total. Then insert the QR code images in the form below and press Decode.</p>
-  <p class="howto">You can also extract the ROM as a hex dump on the screen (but you'll need to decode it yourself) or save it to the tape.</p>
-  <h2>Join QR photos into a ROM</h2>
-  <p class="lead">Add the JPEG or PNG photos. They are read in alphabetical order and saved as one binary file.</p>
+  <div class="top">
+    <h1>ZX ROM Extractor</h1>
+    <nav class="lang" aria-label="Language">
+      <button type="button" id="lang-en" data-set-lang="en">EN</button>
+      <button type="button" id="lang-ru" data-set-lang="ru">RU</button>
+    </nav>
+  </div>
+  <a class="tap" data-i18n="tap" href="https://github.com/atsidaev/zx_rom_extractor/releases/download/v1.0/ZRE_v1_0.TAP">Download TAP</a>
+  <p class="howto" data-i18n="howto1">Load the tape on your ZX Spectrum, select which ROM to extract (SOS or TR-DOS), and press 3 to generate a set of QR codes. Each code takes about 5 minutes. There are 6 codes in total. Then insert the QR code images in the form below and press Decode.</p>
+  <p class="howto" data-i18n="howto2">You can also extract the ROM as a hex dump on the screen (but you'll need to decode it yourself) or save it to the tape.</p>
+  <h2 data-i18n="join">Join QR photos into a ROM</h2>
+  <p class="lead" data-i18n="lead">Add the JPEG or PNG photos. They are read in alphabetical order and saved as one binary file.</p>
   <label class="drop" id="drop">
     <input id="files" type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple>
-    <span>Drop photos here, or click to choose them</span>
+    <span data-i18n="drop">Drop photos here, or click to choose them</span>
   </label>
   <ul id="list"></ul>
   <div class="actions">
-    <button id="go" disabled>Decode</button>
-    <button id="save" class="secondary" disabled>Download rom.bin</button>
+    <button id="go" data-i18n="decode" disabled>Decode</button>
+    <button id="save" class="secondary" data-i18n="save" disabled>Download rom.bin</button>
   </div>
   <p id="status"></p>
 </main>

@@ -57,9 +57,14 @@ bool generate_and_draw_qr(const uint8_t *addr, size_t length) {
     return true;
 }
 
+void qrcodegen_prepare_row_table(int qrsize);
+
 void generate_and_draw_upper(uint8_t * rom) {
     size_t remaining = 0x4000;
     uint8_t num = 1;
+
+    zx_printf("Prefilling the multiplication table...");
+    qrcodegen_prepare_row_table(qrcodegen_VERSION_MAX * 4 + 17);
 
     while (remaining != 0) {
         cls();
